@@ -6,8 +6,8 @@
 
 @section('content')
 <!--================Home Banner Area =================-->
-<section class="banner_area">
-    <div class="banner_inner d-flex align-items-center">
+<section class="banner_area" style="min-height: 0px">
+    <div class="banner_inner d-flex align-items-center" style="min-height: 334px">
         <div class="container">
             <div class="banner_content text-center">
                 <h2>Keranjang Belanja</h2>

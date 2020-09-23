@@ -43,22 +43,41 @@ Route::name('front.')->group(function(){
     
     Route::get('/category/{slug}', 'Ecommerce\FrontController@categoryProduct')->name('category');
     
-    Route::prefix('product')->group(function(){
-        Route::get('/', 'Ecommerce\FrontController@product')->name('product');
-        Route::get('/{slug}', 'Ecommerce\FrontController@show')->name('show_product');
+    Route::group(['prefix' => 'product', 'namespace' => 'Ecommerce'], function(){
+        Route::get('/', 'FrontController@product')->name('product');
+        Route::get('/{slug}', 'FrontController@show')->name('show_product');
     });
 
-    Route::prefix('cart')->group(function(){
-        Route::post('/', 'Ecommerce\CartController@addToCart')->name('cart');
-        Route::get('/', 'Ecommerce\CartController@listCart')->name('list_cart');
-        Route::post('/update', 'Ecommerce\CartController@updateCart')->name('update_cart');
+    Route::group(['prefix' => 'cart', 'namespace' => 'Ecommerce'], function(){
+        Route::post('/', 'CartController@addToCart')->name('cart');
+        Route::get('/', 'CartController@listCart')->name('list_cart');
+        Route::post('/update', 'CartController@updateCart')->name('update_cart');
     });
 
-    Route::prefix('checkout')->group(function(){
-        Route::get('/', 'Ecommerce\CartController@checkout')->name('checkout');
-        Route::post('/', 'Ecommerce\CartController@processCheckout')->name('store_checkout');
-        Route::get('/{invoice}', 'Ecommerce\CartController@checkoutFinish')->name('finish_checkout');
+    Route::group(['prefix' => 'checkout', 'namespace' => 'Ecommerce'], function(){
+        Route::get('/', 'CartController@checkout')->name('checkout');
+        Route::post('/', 'CartController@processCheckout')->name('store_checkout');
+        Route::get('/{invoice}', 'CartController@checkoutFinish')->name('finish_checkout');
     });
-    Route::get('city', 'Ecommerce\CartController@getCity');
-    Route::get('district', 'Ecommerce\CartController@getDistrict');
+    Route::get('/api/city', 'Ecommerce\CartController@getCity');
+    Route::get('/api/district', 'Ecommerce\CartController@getDistrict');
+});
+
+
+
+Route::group(['prefix' => 'member', 'namespace' => 'Ecommerce'], function() {
+    Route::get('/login', 'LoginController@loginForm')->name('customer.login');
+    Route::get('/verify/{token}', 'FrontController@verifyCustomerRegistration')->name('customer.verify');
+    Route::post('/login', 'LoginController@login')->name('customer.post_login');
+
+    Route::group(['middleware' => 'customer'], function() {
+        Route::get('dashboard', 'LoginController@dashboard')->name('customer.dashboard');
+        Route::get('logout', 'LoginController@logout')->name('customer.logout');
+        
+        Route::get('orders', 'OrderController@index')->name('customer.orders');
+        Route::get('orders/{invoice}', 'OrderController@view')->name('customer.view_order');
+
+        Route::get('payment', 'OrderController@paymentForm')->name('customer.paymentForm');
+        Route::post('payment', 'OrderController@storePayment')->name('customer.savePayment');
+    });
 });
