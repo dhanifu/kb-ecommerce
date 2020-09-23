@@ -11,6 +11,11 @@ class Customer extends Authenticatable
     use Notifiable;
     
     protected $guarded = [];
+
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
     
     public function setPasswordAttribute($value)
     {
