@@ -66,12 +66,18 @@ Route::name('front.')->group(function(){
 
 
 Route::group(['prefix' => 'member', 'namespace' => 'Ecommerce'], function() {
-    Route::get('login', 'LoginController@loginForm')->name('customer.login');
-    Route::get('verify/{token}', 'FrontController@verifyCustomerRegistration')->name('customer.verify');
-    Route::post('login', 'LoginController@login')->name('customer.post_login');
+    Route::get('/login', 'LoginController@loginForm')->name('customer.login');
+    Route::get('/verify/{token}', 'FrontController@verifyCustomerRegistration')->name('customer.verify');
+    Route::post('/login', 'LoginController@login')->name('customer.post_login');
 
     Route::group(['middleware' => 'customer'], function() {
         Route::get('dashboard', 'LoginController@dashboard')->name('customer.dashboard');
         Route::get('logout', 'LoginController@logout')->name('customer.logout');
+        
+        Route::get('orders', 'OrderController@index')->name('customer.orders');
+        Route::get('orders/{invoice}', 'OrderController@view')->name('customer.view_order');
+
+        Route::get('payment', 'OrderController@paymentForm')->name('customer.paymentForm');
+        Route::post('payment', 'OrderController@storePayment')->name('customer.savePayment');
     });
 });
