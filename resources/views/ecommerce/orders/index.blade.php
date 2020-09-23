@@ -37,6 +37,9 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
+                                        @if (session('error'))
+                                            <div class="alert alert-danger">{{ session('error') }}</div>
+                                        @endif
                                         <table class="table table-hover table-bordered">
                                             <thead>
                                                 <tr>
