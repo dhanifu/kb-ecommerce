@@ -67,11 +67,11 @@
                                             <label for="">Transfer Ke</label>
                                             <select name="transfer_to" class="form-control" required>
                                                 <option value="">Pilih</option>
-                                                <option value="BCA - 1234567">BCA: 1234567 a.n Anugrah Sandi</option>
-                                                <option value="Mandiri - 2345678">Mandiri: 2345678 a.n Anugrah Sandi
+                                                <option value="BCA - 1234567">BCA: 1234567 a.n Muhammad Ramdhani</option>
+                                                <option value="Mandiri - 2345678">Mandiri: 2345678 a.n Muhammad Ramdhani
                                                 </option>
-                                                <option value="BRI - 9876543">BCA: 9876543 a.n Anugrah Sandi</option>
-                                                <option value="BNI - 6789456">BCA: 6789456 a.n Anugrah Sandi</option>
+                                                <option value="BRI - 9876543">BCA: 9876543 a.n Muhammad Ramdhani</option>
+                                                <option value="BNI - 6789456">BCA: 6789456 a.n Muhammad Ramdhani</option>
                                             </select>
                                             <p class="text-danger">{{ $errors->first('transfer_to') }}</p>
                                         </div>
