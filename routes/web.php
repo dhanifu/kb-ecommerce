@@ -35,6 +35,13 @@ Route::group(['prefix' => 'administrator', 'middleware' => 'auth'], function() {
         Route::get('/bulk', 'ProductController@massUploadForm')->name('bulk');
         Route::post('/bulk', 'ProductController@massUpload')->name('saveBulk');
     });
+
+    Route::prefix('orders')->name('orders.')->group(function(){
+        Route::get('/', 'OrderController@index')->name('index');
+        Route::delete('/{order}', 'OrderController@destroy')->name('destroy');
+        Route::get('/{invoice}', 'OrderController@view')->name('view');
+        Route::get('/payment/{invoice}', 'OrderController@acceptPayment')->name('approve_payment');
+    });
 });
 
 
