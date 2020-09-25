@@ -8,6 +8,7 @@ use App\Order;
 use App\Payment;
 use Carbon\Carbon;
 use DB;
+use PDF;
 
 class OrderController extends Controller
 {
@@ -49,6 +50,9 @@ class OrderController extends Controller
         DB::beginTransaction();
         try {
             $order = Order::where('invoice', $request->invoice)->first();
+            if ($order->subtotal != $request->amount){
+                return redirect()->back()->with(['error' => 'Error, Pembayaran Harus Sama Dengan Tagihan']);
+            } 
 
             if ( $order->status == 0 && $request->hasFile('proof') ) {
                 $file = $request->file('proof');
@@ -76,5 +80,18 @@ class OrderController extends Controller
 
             return redirect()->back()->with(['error'=>$e->getMessage()]);
         }
+    }
+
+    public function pdf($invoice)
+    {
+        $order = Order::with(['district.city.province', 'details', 'details.product', 'payment'])
+                    ->where('invoice', $invoice)->first();
+        if ( !\Gate::forUser(auth()->guard('customer')->user())->allows('order-view', $order) ) {
+            return redirect(route('customer.view_order', $order->invoice));
+        }
+
+        $pdf = PDF::loadView('ecommerce.orders.pdf', compact('order'));
+
+        return $pdf->stream();
     }
 }
