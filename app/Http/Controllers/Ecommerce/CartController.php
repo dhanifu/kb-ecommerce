@@ -122,7 +122,7 @@ class CartController extends Controller
         DB::beginTransaction();
         try {
             $customer = Customer::where('email', $request->email)->first();
-            if ( !auth()->check() && $customer ) {
+            if ( !auth()->guard('customer')->check() && $customer ) {
                 return redirect()->back()->with(['error'=>'Silahkan Login Terlebih Dahulu']);
             }
 
@@ -132,17 +132,19 @@ class CartController extends Controller
                 return $q['qty'] * $q['product_price'];
             });
 
-            $password = Str::random(8);
-            $customer = Customer::create([
-                'name' => $request->customer_name,
-                'email' => $request->email,
-                'password' => $password,
-                'phone_number' => $request->customer_phone,
-                'address' => $request->customer_address,
-                'district_id' => $request->district_id,
-                'activate_token' => Str::random(30),
-                'status' => false
-            ]);
+            if ( !auth()->guard('customer')->check() ){
+                $password = Str::random(8);
+                $customer = Customer::create([
+                    'name' => $request->customer_name,
+                    'email' => $request->email,
+                    'password' => $password,
+                    'phone_number' => $request->customer_phone,
+                    'address' => $request->customer_address,
+                    'district_id' => $request->district_id,
+                    'activate_token' => Str::random(30),
+                    'status' => false
+                ]);
+            }
 
             $order = Order::create([
                 'invoice' => Str::random(4) . '-' . time(),
@@ -171,7 +173,9 @@ class CartController extends Controller
 
             $cookie = cookie('kb-carts', json_encode($carts), 2880);
 
-            Mail::to($request->email)->send(new CustomerRegisterMail($customer, $password));
+            if ( !auth()->guard('customer')->check() ) {
+                Mail::to($request->email)->send(new CustomerRegisterMail($customer, $password));
+            }
 
             return redirect(route('front.finish_checkout', $order->invoice))->cookie($cookie);
         } catch ( \Exception $e ) {
