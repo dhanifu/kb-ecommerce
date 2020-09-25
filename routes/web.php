@@ -42,6 +42,8 @@ Route::group(['prefix' => 'administrator', 'middleware' => 'auth'], function() {
         Route::get('/{invoice}', 'OrderController@view')->name('view');
         Route::get('/payment/{invoice}', 'OrderController@acceptPayment')->name('approve_payment');
         Route::post('/shipping', 'OrderController@shippingOrder')->name('shipping');
+        Route::get('/return/{invoice}', 'OrderController@return')->name('return');
+        Route::post('/return', 'OrderController@approveReturn')->name('approve_return');
     });
 });
 
