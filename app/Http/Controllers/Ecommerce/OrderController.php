@@ -143,8 +143,36 @@ class OrderController extends Controller
                 'status' => 0
             ]);
 
+            $order = Order::find($id);
+            $this->sendMessage('#' . $order->invoice, $request->reason); 
+
             return redirect()->back()->with(['success'=>'Permintaan Refund Dikirim']);
         }
     }
-    
+
+    // TELEGRAM BOT
+    public function getTelegram($url, $params)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url.$params);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+        $content = curl_exec($ch);
+        curl_close($ch);
+
+        return json_decode($content, true);
+    }
+    public function sendMessage($order_id, $reason)
+    {
+        $key = env('TELEGRAM_KEY');
+
+        $chat = $this->getTelegram('https://api.telegram.org/'.$key.'/getUpdates', '');
+
+        if ( $chat['ok'] ) {
+            $chat_id = $chat['result'][0]['message']['chat']['id'];
+            $text = 'Hai, OrderID '. $order_id. ' melakukan permintaan refund dengan alasan "'. $reason. '", Segera Dicek Ya!';
+
+            return $this->getTelegam('https://api.telegram.org/'.$key.'/sendMessage', '?chat_id=' . $chat_id . '&text=' . $text);
+        }
+    }
 }
