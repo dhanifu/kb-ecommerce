@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Mail\OrderMail;
 use App\Order;
+use Mail;
 
 class OrderController extends Controller
 {
@@ -45,6 +47,16 @@ class OrderController extends Controller
         $order->update(['status'=>2]);
 
         return redirect(route('orders.view', $order->invoice));
+    }
+
+    public function shippingOrder(Request $request)
+    {
+        $Order = Order::with(['customer'])->find($request->order_id);
+        $order->update(['tracking_number'=>$request->tracking_number, 'status'=>3]);
+
+        Mail::to($order->customer->email)->send(new OrderMail($order));
+
+        return redirect()->back();
     }
 
     public function destroy(Order $order)
