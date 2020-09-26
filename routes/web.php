@@ -45,6 +45,11 @@ Route::group(['prefix' => 'administrator', 'middleware' => 'auth'], function() {
         Route::get('/return/{invoice}', 'OrderController@return')->name('return');
         Route::post('/return', 'OrderController@approveReturn')->name('approve_return');
     });
+
+    Route::prefix('reports')->name('report')->group(function(){
+        Route::get('/order', 'HomeController@orderReport')->name('order');
+        Route::get('/order/pdf/{daterange}', 'HomeController@orderReportPdf')->name('order_pdf');
+    });
 });
 
 
