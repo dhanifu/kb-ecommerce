@@ -8,6 +8,7 @@ use App\Product;
 use App\Category;
 use App\Customer;
 use App\Province;
+use App\Order;
 
 class FrontController extends Controller
 {
@@ -82,5 +83,23 @@ class FrontController extends Controller
         $user->update($data);
 
         return redirect()->back()->with(['success'=>'Profile berhasil diperbarui']);
+    }
+
+    public function referalProduct($user, $product)
+    {
+        $code = $user. '-'. $product;
+        $product = Product::find($product);
+        $cookie = cookie('kb-afiliasi', json_encode($code), 2880);
+
+        return redirect(route('front.show_product', $product->slug))->cookie($cookie);
+    }
+
+    public function listCommission()
+    {
+        $user = auth()->guard('customer')->user();
+        $orders = Order::where('ref', $user->id)->where('status', 4)
+                        ->paginate(10);
+
+        return view('ecommerce.affiliate', compact('orders'));
     }
 }

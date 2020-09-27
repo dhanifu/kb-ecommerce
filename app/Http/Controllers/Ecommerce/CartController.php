@@ -16,6 +16,7 @@ use App\Order;
 use App\OrderDetail;
 use Illuminate\Support\Str;
 use DB;
+use Cookie;
 
 class CartController extends Controller
 {
@@ -121,6 +122,9 @@ class CartController extends Controller
 
         DB::beginTransaction();
         try {
+            $affiliate = json_decode(request()->cookie('kb-afiliasi'), true);
+            $exploadAffiliate = explode('-', $affiliate);
+            
             $customer = Customer::where('email', $request->email)->first();
             if ( !auth()->guard('customer')->check() && $customer ) {
                 return redirect()->back()->with(['error'=>'Silahkan Login Terlebih Dahulu']);
@@ -153,7 +157,8 @@ class CartController extends Controller
                 'customer_phone' => $request->customer_phone,
                 'customer_address' => $request->customer_address,
                 'district_id' => $request->district_id,
-                'subtotal' => $subtotal
+                'subtotal' => $subtotal,
+                'ref' => $affiliate!='' && $exploadAffiliate[0]!=auth()->guard('customer')->user()->id ? $affiliate : NULL
             ]);
 
             foreach ($carts as $row) {
@@ -172,6 +177,7 @@ class CartController extends Controller
             $carts = [];
 
             $cookie = cookie('kb-carts', json_encode($carts), 2880);
+            Cookie::queue(Cookie::forget('kb-afiliasi'));
 
             if ( !auth()->guard('customer')->check() ) {
                 Mail::to($request->email)->send(new CustomerRegisterMail($customer, $password));
