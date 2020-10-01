@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     protected $guarded = [];
-    protected $appends = ['status_label', 'ref_status_label', 'commission'];
+    protected $appends = ['status_label', 'ref_status_label', 'commission', 'total'];
 
     public function district()
     {
@@ -63,5 +63,10 @@ class Order extends Model
         $commission = ($this->subtotal*10) / 100;
 
         return $commission > 10000 ? 10000 : $commission;
+    }
+
+    public function getTotalAttribute()
+    {
+        return $this->subtotal + $this->cost;
     }
 }
