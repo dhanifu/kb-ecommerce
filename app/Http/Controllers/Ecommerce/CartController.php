@@ -46,13 +46,14 @@ class CartController extends Controller
                 'product_id' => $product->id,
                 'product_name' => $product->name,
                 'product_price' => $product->price,
-                'product_image' => $product->image
+                'product_image' => $product->image,
+                'weight' => $product->weight
             ];
         }
 
         $cookie = cookie('kb-carts', json_encode($carts), 2880);
 
-        return redirect()->back()->cookie($cookie);
+        return redirect()->back()->with(['success'=>'Produk Ditambahkan ke Keranjang'])->cookie($cookie);
     }
 
     public function listCart()
