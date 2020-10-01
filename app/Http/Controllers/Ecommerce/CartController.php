@@ -16,6 +16,8 @@ use App\Order;
 use App\OrderDetail;
 use Illuminate\Support\Str;
 use DB;
+use Cookie;
+use GuzzleHttp\Client;
 
 class CartController extends Controller
 {
@@ -44,13 +46,14 @@ class CartController extends Controller
                 'product_id' => $product->id,
                 'product_name' => $product->name,
                 'product_price' => $product->price,
-                'product_image' => $product->image
+                'product_image' => $product->image,
+                'weight' => $product->weight
             ];
         }
 
         $cookie = cookie('kb-carts', json_encode($carts), 2880);
 
-        return redirect()->back()->cookie($cookie);
+        return redirect()->back()->with(['success'=>'Produk Ditambahkan ke Keranjang'])->cookie($cookie);
     }
 
     public function listCart()
@@ -90,7 +93,11 @@ class CartController extends Controller
             return $q['qty'] * $q['product_price'];
         });
 
-        return view('ecommerce.checkout', compact('provinces', 'carts', 'subtotal'));
+        $weight = collect($carts)->sum(function($q) {
+            return $q['qty'] * $q['weight'];
+        });
+
+        return view('ecommerce.checkout', compact('provinces', 'carts', 'subtotal', 'weight'));
     }
 
     public function getCity()
@@ -116,11 +123,15 @@ class CartController extends Controller
             'customer_address' => 'required|string',
             'province_id' => 'required|exists:provinces,id',
             'city_id' => 'required|exists:cities,id',
-            'district_id' => 'required|exists:districts,id'
+            'district_id' => 'required|exists:districts,id',
+            'courier' => 'required'
         ]);
 
         DB::beginTransaction();
         try {
+            $affiliate = json_decode(request()->cookie('kb-afiliasi'), true);
+            $exploadAffiliate = explode('-', $affiliate);
+            
             $customer = Customer::where('email', $request->email)->first();
             if ( !auth()->guard('customer')->check() && $customer ) {
                 return redirect()->back()->with(['error'=>'Silahkan Login Terlebih Dahulu']);
@@ -146,6 +157,7 @@ class CartController extends Controller
                 ]);
             }
 
+            $shipping = explode('-', $request->courier);
             $order = Order::create([
                 'invoice' => Str::random(4) . '-' . time(),
                 'customer_id' => $customer->id,
@@ -153,7 +165,10 @@ class CartController extends Controller
                 'customer_phone' => $request->customer_phone,
                 'customer_address' => $request->customer_address,
                 'district_id' => $request->district_id,
-                'subtotal' => $subtotal
+                'subtotal' => $subtotal,
+                'cost' => $shipping[2],
+                'shipping' => $shipping[0]. '-' .$shipping[1],
+                'ref' => $affiliate!='' && $exploadAffiliate[0]!=auth()->guard('customer')->user()->id ? $affiliate : NULL,
             ]);
 
             foreach ($carts as $row) {
@@ -172,6 +187,7 @@ class CartController extends Controller
             $carts = [];
 
             $cookie = cookie('kb-carts', json_encode($carts), 2880);
+            Cookie::queue(Cookie::forget('kb-afiliasi'));
 
             if ( !auth()->guard('customer')->check() ) {
                 Mail::to($request->email)->send(new CustomerRegisterMail($customer, $password));
@@ -190,5 +206,30 @@ class CartController extends Controller
         $order = Order::with(['district.city'])->where('invoice', $invoice)->first();
 
         return view('ecommerce.checkout_finish', compact('order'));
+    }
+
+    public function getCourier(Request $request)
+    {
+        $this->validate($request, [
+            'destination'=> 'required',
+            'weight'=>'required|integer',
+        ]);
+
+        $url = 'https://ruangapi.com/api/v1/shipping';
+        $client = new Client();
+        $response = $client->request('POST', $url, [
+            'headers' => [
+                'Authorization' => 'HIKo1KbHk6L24ViJCJHG93JVYvTuY0KoWLWF49yx'
+            ],
+            'form_params' => [
+                'origin' => 22,
+                'destination' => $request->destination,
+                'weight' => $request->weight,
+                'courier' => 'jne,jnt'
+            ]
+        ]);
+        $body = json_decode($response->getBody(), true);
+
+        return $body;
     }
 }
