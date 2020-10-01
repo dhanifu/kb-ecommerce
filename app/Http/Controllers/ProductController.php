@@ -6,6 +6,7 @@ use File;
 use App\Product;
 use App\Category;
 use App\Jobs\ProductJob;
+use App\Jobs\MarketplaceJob;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -172,5 +173,17 @@ class ProductController extends Controller
         $product->delete();
         
         return redirect(route('product.index'))->with(['success' => 'Produk Sudah Dihapus']);
+    }
+
+    public function uploadViaMarketPlace(Request $request)
+    {
+        $this->validate($request, [
+            'marketplace' => 'required|string',
+            'username' => 'required|string',
+        ]);
+
+        MarketplaceJob::dispatch($request->username, 10);
+
+        return redirect()->back()->with(['success'=>'Produk Dalam Antrean']);
     }
 }
