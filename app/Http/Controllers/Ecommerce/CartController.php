@@ -92,7 +92,11 @@ class CartController extends Controller
             return $q['qty'] * $q['product_price'];
         });
 
-        return view('ecommerce.checkout', compact('provinces', 'carts', 'subtotal'));
+        $weight = collect($carts)->sum(function($q) {
+            return $q['qty'] * $q['weight'];
+        });
+
+        return view('ecommerce.checkout', compact('provinces', 'carts', 'subtotal', 'weight'));
     }
 
     public function getCity()
